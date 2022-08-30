@@ -15,7 +15,9 @@ Having a full nix-store for each one on some Server seemed wasteful though, so I
 NixOS does not need a full rootfs to boot, it just needs `/nix` (and the pseudo file systems like `/dev`, `/proc`,...).
 All the other directories get generated inside the activation script.
 
-> That's how [Impermanence](https://github.com/nix-community/impermanence) (and the NixOS iso) works
+<tangent>
+That's how [Impermanence](https://github.com/nix-community/impermanence) (and the NixOS iso) works
+</tangent>
 
 The path seemed clear:
 
@@ -68,11 +70,15 @@ I just naively tried
 but it just didn't boot.
 The initramfs ran through, but then it just hung.
 
+<tangent>
 > `boot.shell_on_fail` and the [other cmdline options](https://github.com/NixOS/nixpkgs/blob/e2f8343087e0b131562a7c1fef220abccb6d1981/nixos/modules/system/boot/stage-1-init.sh#L185) really helped debugging
+</tangent>
 
 NixOS initramfs networking yeets the network configuration after booting successfully.
 
+<tangent>
 > it took me at least a solid 10h to find that out
+</tangent>
 
 You have to set `boot.initrd.network.flushBeforeStage2` to `false` to disable that.
 

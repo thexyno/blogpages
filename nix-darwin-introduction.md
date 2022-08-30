@@ -16,7 +16,9 @@ Coming from NixOS, I wanted to replicate the godly feeling of declaratively conf
 
 [nix-darwin](https://github.com/LnL7/nix-darwin) and [home-manager](https://github.com/nix-community/home-manager) are the tools to archive exactly that.
 
-> If I didn't knew nix-darwin existed when I needed a new laptop, I would've bought myself a framework.
+<tangent>
+If I didn't knew nix-darwin existed when I needed a new laptop, I would've bought myself a framework.
+</tangent>
 
 ## Why should anybody want to do that
 
@@ -36,7 +38,9 @@ Nix is a declarative functional programming language created as part of and for 
 In Nix, packages are defined as so called [derivations](https://nixos.org/manual/nix/stable/expressions/derivations.html).
 A derivation is a function with package dependencies and package configuration as its inputs, and a plan on how to build that package as its output.
 
-> package configuration in the sense of "do you want to build vlc with chromecast support?" (similar to gentoo USE flags)
+<tangent>
+package configuration in the sense of "do you want to build vlc with chromecast support?" (similar to gentoo USE flags)
+</tangent>
 
 Nix will evaluate that function and build it's output. The output will then be stored in the path `/nix/store/${sha256 of the derivation}-${package name}`
 
@@ -48,18 +52,20 @@ In [nixpkgs](https://github.com/NixOS/nixpkgs), the central repository for:
 
 there are helper functions to easily build such a derivation for most programming languages.
 
-> As the naming of nix/nixpkgs can get confusing:
->
-> there are: nix (Programming Language), nix (Package manager), nixpkgs (Package Repository), NixOS (Linux Distribution)
->
->
-> nix (Programming language) ≠ nix (Package manager). nix (Package Manager) is the only implementation of nix (Programming Language) though.
->
-> nixpkgs ≠ NixOS, but NixOS ⊂ nixpkgs
->
-> nixpkgs ≠ nix
->
-> nix flakes ∈ nix ∧ nix flakes ∉ nixpkgs
+<tangent>
+As the naming of nix/nixpkgs can get confusing:
+
+there are: nix (Programming Language), nix (Package manager), nixpkgs (Package Repository), NixOS (Linux Distribution)
+
+
+nix (Programming language) ≠ nix (Package manager). nix (Package Manager) is the only implementation of nix (Programming Language) though.
+
+nixpkgs ≠ NixOS, but NixOS ⊂ nixpkgs
+
+nixpkgs ≠ nix
+
+nix flakes ∈ nix ∧ nix flakes ∉ nixpkgs
+</tangent>
 
 A simple derivation is the following:
 
@@ -94,15 +100,19 @@ stdenv.mkDerivation { # stdenv.mkDerivation is a nixpkgs helper function
 }
 ```
 
-> in nix, a function definition is `function = argument: output`.
->
-> to evaluate a function, you have to `function argument`
+<tangent>
+in nix, a function definition is `function = argument: output`.
+
+to evaluate a function, you have to `function argument`
+</tangent>
 
 In the above file, we define a function with the attribute set (an attribute set is basically an object) `{ stdenv, gcc, ... }` as it's argument and `stdenv.mkDerivation {...}` as it's output.
 
 Our function will then evaluate the function `stdenv.mkDerivation` with the attribute set after it. `mkDerivation` creates a derivation out of the attribute set, and nix will build it.
 
-> the three dots in `{stdenv, gcc, ...}` mean, that we'll also accept an attribute set with more attributes, those will then be ignored.
+<tangent>
+the three dots in `{stdenv, gcc, ...}` mean, that we'll also accept an attribute set with more attributes, those will then be ignored.
+</tangent>
 
 ### nix flakes
 
@@ -112,9 +122,11 @@ This is state external to your own package though, and it means you always have 
 
 To solve this problem, tools like [niv](https://github.com/nmattia/niv) and [nix-flakes](https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake.html) were created.
 
-> We'll use nix-flakes here, as it's part of nix itself
->
-> **nix-flake is an experimental feature though, so be warned**
+<tangent>
+We'll use nix-flakes here, as it's part of nix itself
+
+**nix-flake is an experimental feature though, so be warned**
+</tangent>
 
 A nix flake consists of two files:
 
@@ -158,9 +170,11 @@ A sample flake building our little C program would look like this:
 
 To build our flake, run `nix build .` 
 
-> `.` means the flake at your CWD
->
-> Important note: if your flake is inside a git repository, nix will ignore uncommited files
+<tangent>
+`.` means the flake at your CWD
+
+Important note: if your flake is inside a git repository, nix will ignore uncommited files
+</tangent>
 
 ### NixOS
 
@@ -168,11 +182,15 @@ NixOS is a complete linux distribution based on nix.
 
 Instead of installing and configuring packages by hand, the complete system configuration is a function with the nixpkgs and your configuration as their inputs and a script to set the new system state (the activation script) as it's output. (the output is more complicated then just the activation script, but we'll ignore that for this post)
 
-> It dosen't have to be just the activation script though, you can also tell nix to create a iso/img/qcow2/ami of your configuration
+<tangent>
+It dosen't have to be just the activation script though, you can also tell nix to create a iso/img/qcow2/ami of your configuration
+</tangent>
 
 This makes NixOS (almost) completely reproducible.
 
-> to get all of your applications/configuration onto a new computer you just have to run `nixos-rebuild` on it and you're done (except copying over any data, but you get the point)
+<tangent>
+to get all of your applications/configuration onto a new computer you just have to run `nixos-rebuild` on it and you're done (except copying over any data, but you get the point)
+</tangent>
 
 It also allows you to rollback to your last configuration if anything goes wrong.
 
@@ -257,7 +275,9 @@ So let's `mkdir -p hosts/YourHostName` and create a `default.nix` there.
 
 If you used NixOS before, this file is like a NixOS `configuration.nix`, just with fewer and partly different options.
 
-> You can find all options in the [documentation](https://daiderd.com/nix-darwin/manual/index.html#sec-options)
+<tangent>
+You can find all options in the [documentation](https://daiderd.com/nix-darwin/manual/index.html#sec-options)
+</tangent>
 
 A few options I want to make sure everybody using `nix-darwin` knows of are `homebrew` and `system.defaults`.
 
@@ -267,7 +287,9 @@ The `homebrew` module lets you install software from [brew.sh](https://brew.sh) 
 
 Using `nix` and something like `homebrew` or `macports` together it kinda required IMO, because most GUI applications for mac aren't inside nixpkgs (as nixpkgs can't legally ship Xcode, which is needed for mac native GUI stuff)
 
-> The module just runs a system installed `brew` inside the activation script (meaning you'll have to install homebrew beforehand)
+<tangent>
+The module just runs a system installed `brew` inside the activation script (meaning you'll have to install homebrew beforehand)
+</tangent>
 
 So if you want to install your favorite casks, you can just
 
@@ -298,7 +320,9 @@ The `system.defaults` module allows you to set macOS settings.
 
 For example you can set `system.defaults.dock.autohide = true;` to autohide the dock.
 
-> All supported options are ofc. listed inside the [options documentation](https://daiderd.com/nix-darwin/manual/index.html#opt-system.defaults..GlobalPreferences.com.apple.sound.beep.sound)
+<tangent>
+All supported options are ofc. listed inside the [options documentation](https://daiderd.com/nix-darwin/manual/index.html#opt-system.defaults..GlobalPreferences.com.apple.sound.beep.sound)
+</tangent>
 
 ## home-manager
 
@@ -360,15 +384,19 @@ home-manager.users.YourUserName = { pkgs, ... }: {
 The `stateVersion` attribute is described [here](https://search.nixos.org/options?channel=22.05&show=system.stateVersion&from=0&size=50&sort=relevance&type=packages&query=system.stateVersion)
 
 
-> All the home-manager options are listed in their [documentation](https://nix-community.github.io/home-manager/options.html)
->
-> home-manager `services` only work on linux though (as they use systemd, which is a linux only thing)
+<tangent>
+All the home-manager options are listed in their [documentation](https://nix-community.github.io/home-manager/options.html)
+
+home-manager `services` only work on linux though (as they use systemd, which is a linux only thing)
+</tangent>
 
 ## Installation
 
 To install our newly created `nix-darwin` configuration, we have to first build it, and then run darwin-rebuild from there.
 
-> There is also a nix-darwin installer. It dosen't work with flakes though.
+<tangent>
+There is also a nix-darwin installer. It dosen't work with flakes though.
+</tangent>
 
 ```sh
 # builds the darwinConfiguration.
@@ -385,15 +413,17 @@ printf 'run\tprivate/var/run\n' | sudo tee -a /etc/synthetic.conf # read below
 ./result/sw/bin/darwin-rebuild switch --flake .  # install nix-darwin
 ```
 
-> macOS dosen't allow any software to write to `/`.
-> Instead you can write directory names or symlinks to `/etc/synthetic.conf`.
-> 
-> macOS will then create those files/symlinks on boot. (rebooting is boring, so we'll just run `apfs.util -t` to create them immediately)
->
->
-> nix itself has just "nix" inside `/etc/synthetic.conf` (an empty folder at `/nix`), it'll then mount an apfs volume containing your nix store above it.
->
-> nix-darwin needs a symlink from `/run` to `/private/var/run` to function, that's whats added in the printf|tee line
+<tangent>
+macOS dosen't allow any software to write to `/`.
+Instead you can write directory names or symlinks to `/etc/synthetic.conf`.
+
+macOS will then create those files/symlinks on boot. (rebooting is boring, so we'll just run `apfs.util -t` to create them immediately)
+
+
+nix itself has just "nix" inside `/etc/synthetic.conf` (an empty folder at `/nix`), it'll then mount an apfs volume containing your nix store above it.
+
+nix-darwin needs a symlink from `/run` to `/private/var/run` to function, that's whats added in the printf|tee line
+</tangent>
 
 Your shell needs to source an rc file from nix-darwin to set up your environment variables. `/etc/static/zshrc` for zsh and `/etc/static/bashrc` for bash.
 
