@@ -24,31 +24,27 @@ It of course only works in Linux VMs on Apple Silicon macs, [althrough seemingly
 To use it, you have to use a VM Software utilizing [Virtualization.Framework](https://developer.apple.com/documentation/hypervisor) (not to be confused with [Hypervisor.Framework](https://developer.apple.com/documentation/hypervisor)), which also exposes the option to mount the Rosetta volume, and you have to be on macOS 13 (Beta).
 
 We'll use [UTM](https://mac.getutm.app/) here. 
-The Rosetta option is only exposed on Beta versions of UTM v4, so grab it [here](https://github.com/utmapp/UTM/releases).
+The Rosetta option is only exposed on [Beta versions of UTM v4](https://github.com/utmapp/UTM/releases).
 
 While creating the VM, check both "Use Apple Virtualization" and "Enable Rosetta"
 
-Then install NixOS like normal.
-
-<tangent>
-aarch64 NixOS ISOs are avaliable [here](https://nixos.wiki/wiki/NixOS_on_ARM/UEFI#Getting_the_installer_image_.28ISO.29)
-</tangent>
+Then install NixOS like normal (using an [aarch64 ISO](https://nixos.wiki/wiki/NixOS_on_ARM/UEFI#Getting_the_installer_image_.28ISO.29)).
 
 
-To mount the Rosetta `virtiofs`, register the binfmt and tell nix that you can also now build x86, put the following inside your NixOS configuration:
+To mount the Rosetta `virtiofs`, register the binary format and tell nix that you can build x86 now, put the following inside your NixOS configuration:
 
 
 ```nix
 { config, lib, ...}: {
   boot.initrd.availableKernelModules = [ "virtiofs" ];
-  fileSystems."/tmp/rosetta" = {
+  fileSystems."/run/rosetta" = {
     device = "rosetta";
     fsType = "virtiofs";
   };
   nix.settings.extra-platforms = [ "x86_64-linux" ];
-  nix.settings.extra-sandbox-paths = [ "/tmp/rosetta" "/run/binfmt" ];
+  nix.settings.extra-sandbox-paths = [ "/run/rosetta" "/run/binfmt" ];
   boot.binfmt.registrations."rosetta" = { # based on https://developer.apple.com/documentation/virtualization/running_intel_binaries_in_linux_vms_with_rosetta#3978495
-    interpreter = "/tmp/rosetta/rosetta";
+    interpreter = "/run/rosetta/rosetta";
     fixBinary = true;
     wrapInterpreterInShell = false;
     matchCredentials = true;
@@ -60,7 +56,7 @@ To mount the Rosetta `virtiofs`, register the binfmt and tell nix that you can a
 
 `nixos-rebuild`
 
-And now you can run X86 Applications
+And now you can run x86 Applications
 
 ```sh
 $ nix-shell -E 'with import <nixpkgs> { system="x86_64-linux"; }; runCommand "dummy" { buildInputs = [ hello ]; } ""' --command hello
