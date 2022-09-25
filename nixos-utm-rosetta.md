@@ -21,7 +21,7 @@ It of course only works in Linux VMs on Apple Silicon macs, [althrough seemingly
 </tangent>
 
 
-To use it, you have to use a VM Software utilizing [Virtualization.Framework](https://developer.apple.com/documentation/hypervisor) (not to be confused with [Hypervisor.Framework](https://developer.apple.com/documentation/hypervisor)), which also exposes the option to mount the Rosetta volume, and you have to be on macOS 13 (Beta).
+To use it, you have to use a VM Software utilizing [Virtualization.Framework](https://developer.apple.com/documentation/virtualization) (not to be confused with [Hypervisor.Framework](https://developer.apple.com/documentation/hypervisor)), which also exposes the option to mount the Rosetta volume, and you have to be on macOS 13 (Beta).
 
 We'll use [UTM](https://mac.getutm.app/) here. 
 The Rosetta option is only exposed on [Beta versions of UTM v4](https://github.com/utmapp/UTM/releases).
@@ -56,7 +56,7 @@ To mount the Rosetta `virtiofs`, register the binary format and tell nix that yo
 
 `nixos-rebuild`
 
-And now you can run x86 Applications
+And now you can run X86 Applications
 
 ```sh
 $ nix-shell -E 'with import <nixpkgs> { system="x86_64-linux"; }; runCommand "dummy" { buildInputs = [ hello ]; } ""' --command hello
