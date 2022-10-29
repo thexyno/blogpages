@@ -2,7 +2,7 @@
 id: nixos-utm-rosetta
 title: Using Rosetta 2 in a NixOS VM
 created: 2022-09-07
-updated: 2022-09-07
+updated: 2022-10-29
 tags:
   - nix
   - NixOS
@@ -11,7 +11,10 @@ tags:
 ---
 
 <box>
-This only works with macOS 13 (Beta) and UTM 4 (also Beta)
+Update (2022-10-29): Removed parts about how everything is in beta, as macOS Ventura and UTM 4 are out of beta.
+
+
+This only works with macOS 13 (or later) and UTM 4 (or later)
 </box>
 
 With the release of macOS Ventura, Apple *generously* allows people to also use Rosetta 2 in their Linux VMs.
@@ -24,7 +27,7 @@ It of course only works in Linux VMs on Apple Silicon macs, [althrough seemingly
 To use it, you have to use a VM Software utilizing [Virtualization.Framework](https://developer.apple.com/documentation/virtualization) (not to be confused with [Hypervisor.Framework](https://developer.apple.com/documentation/hypervisor)), which also exposes the option to mount the Rosetta volume, and you have to be on macOS 13 (Beta).
 
 We'll use [UTM](https://mac.getutm.app/) here. 
-The Rosetta option is only exposed on [Beta versions of UTM v4](https://github.com/utmapp/UTM/releases).
+The Rosetta option is only exposed on [UTM Version 4.0 and above](https://github.com/utmapp/UTM/releases) (you can also get it from the [Mac App Store](https://apps.apple.com/de/app/utm-virtuelle-maschinen/id1538878817)).
 
 While creating the VM, check both "Use Apple Virtualization" and "Enable Rosetta"
 
