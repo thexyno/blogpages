@@ -2,7 +2,7 @@
 id: nixos-utm-rosetta
 title: Using Rosetta 2 in a NixOS VM
 created: 2022-09-07
-updated: 2022-10-29
+updated: 2022-02-09
 tags:
   - nix
   - NixOS
@@ -11,6 +11,8 @@ tags:
 ---
 
 <box>
+Update (2023-02-09): [There is a bug in Rosetta right now preventing to run some GUI applications](https://github.com/NixOS/nixpkgs/issues/209242)
+
 Update (2022-10-29): Removed parts about how everything is in beta, as macOS Ventura and UTM 4 are out of beta.
 
 
@@ -35,6 +37,10 @@ Then install NixOS like normal (using an [aarch64 ISO](https://nixos.wiki/wiki/N
 
 
 To mount the Rosetta `virtiofs`, register the binary format and tell nix that you can build x86 now, put the following inside your NixOS configuration:
+
+<greybox>
+Update (2023-02-09): On current NixOS unstable you can just do `virtualization.rosetta.enable = true;` instead of the following
+</greybox>
 
 
 ```nix
