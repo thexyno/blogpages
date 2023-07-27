@@ -39,7 +39,7 @@ Then install NixOS like normal (using an [aarch64 ISO](https://nixos.wiki/wiki/N
 To mount the Rosetta `virtiofs`, register the binary format and tell nix that you can build x86 now, put the following inside your NixOS configuration:
 
 <greybox>
-Update (2023-02-09): On current NixOS (23.05) you can just do `virtualisation.rosetta.enable = true;` instead of the following
+Update (2023-07-28): On current NixOS (23.05) you can just do `virtualisation.rosetta.enable = true;` instead of the following
 </greybox>
 
 
