@@ -2,7 +2,7 @@
 id: nix-darwin-introduction
 title: Declarative macOS Configuration Using nix-darwin And home-manager
 created: 2022-07-03
-updated: 2022-07-03
+updated: 2023-07-28
 tags:
   - nix
   - nix-darwin
@@ -148,7 +148,7 @@ A sample flake building our little C program would look like this:
 {
   description = "My first nix flake";
 
-  inputs.nixpkgs.url = github:NixOS/nixpkgs/nixos-22.05;
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
 
   outputs = { self, nixpkgs }: { # function with our inputs
 
@@ -221,8 +221,8 @@ To use `nix-darwin` and `home-manager` we first have to add their respective inp
   description = "My first nix flake";
 
   inputs = {
-      nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-22.05-darwin";
-      home-manager.url = "github:nix-community/home-manager";
+      nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-23.05-darwin"; # newest version as of may 2023, probably needs to get updated in november
+      home-manager.url = "github:nix-community/home-manager/release-23.05"; # ...
       home-manager.inputs.nixpkgs.follows = "nixpkgs";
       # nix will normally use the nixpkgs defined in home-managers inputs, we only want one copy of nixpkgs though
       darwin.url = "github:lnl7/nix-darwin";
@@ -235,6 +235,7 @@ To use `nix-darwin` and `home-manager` we first have to add their respective inp
   };
 }
 ```
+
 
 To actually have a nix-darwin configuration, we'll need a `darwinConfiguration` output.
 
@@ -362,7 +363,7 @@ home-manager.useGlobalPkgs = true;
 home-manager.useUserPackages = true;
 home-manager.users.YourUserName = { pkgs, ... }: {
 
-  stateVersion = "22.05"; # read below
+  stateVersion = "23.05"; # read below
 
   programs.tmux = { # my tmux configuration, for example
     enable = true;
@@ -447,6 +448,14 @@ You may have to rerun this on macOS updates.
 <br>
 
 If you make changes to your configuration, you just have to commit them and run `darwin-rebuild switch --flake .` inside the repo.
+
+<tangent>
+`nixpkgs` and `home-manager` release new (stable) versions twice a year, currently in May and November. that's what the `23.05` in flake inputes is for.
+
+To update or install a newer version you have to increase the version number, do `nix flake update` and `darwin-rebuild`
+
+Doing an occasional `nix flake update` is wise
+</tangent>
 
 <hr/>
 
