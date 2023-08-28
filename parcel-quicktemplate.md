@@ -1,7 +1,7 @@
 ---
 id: parcel-quicktemplate
 title: Using Parcel with Go Templates
-created: 2023-08-27
+created: 2023-08-28
 tags:
   - go
   - quicktemplate
@@ -12,37 +12,31 @@ tags:
 
 When I built my blog engine 
 (of because I build my own blog engine, because where is the fun in using a premade one)
-I really wanted to try TailwindCSS for a first time.
-
-It seemed like a nice way to not have to write too much CSS myself and everyone was talking about it at the time.
+I really wanted to try TailwindCSS for the first time.
 
 You can actually use tailwind just by itself, and it works, which is what I did at the start.
-I later wanted to manage fonts better than just statically serving `${pkgs.jetbrains-mono}/share/fonts/truetype/JetBrainsMono[wght].ttf`, so a different solution was needed.
+I later wanted to manage fonts better than just statically serving
+
+`${pkgs.jetbrains-mono}/share/fonts/truetype/JetBrainsMono[wght].ttf`, so a different solution was needed.
 
 
 <tangent>
-Tailwinds "I'm gonna search for class names I know" thing dosen't actually parse your html and just searches for classnames, so it even works fine with template engines
+Tailwinds "I'm gonna search for classnames I know" thing dosen't actually parse your html and just searches for classnames, so it even works fine with template engines
 </tangent>
 
 
-In the JavaScript SPA world the use of bundlers like webpack/vite/parcel is ubiquitous, so this is the story about how I adapted parcel to work with my blog engine.
+In the JavaScript SPA world, the use of bundlers like webpack/vite/parcel is ubiquitous, so this is the story about how I adapted parcel to work with my blog engine.
 
 ## How my blog engine works
 
-My blog engine is build around a SQLite database storing Posts, tags (that aren't used yet) and metadata (that also isn't used yet).
+My blog engine is build around a SQLite database storing posts, tags (that aren't used yet) and metadata (that also isn't used yet).
 A go server reads the database and renders the markdown to HTML/RSS feeds.
 
 <tangent>
-[gomarkdown](https://github.com/gomarkdown/markdown) is a pretty great markdown renderer. you can easily modify it's parser/renderer to, for example, build such tangent blocks.
+[gomarkdown](https://github.com/gomarkdown/markdown) is a pretty great markdown renderer. you can easily modify it's parser/renderer to, for example, build tangent blocks like these.
 
 <tangent>
-using a static site generator would 100% be enough for what my blog is now, but where's the fun in that
-
-
-<tangent>
-damn, I can stack tangents
-</tangent>
-
+damn, I can stack tangents.
 </tangent>
 
 </tangent>
@@ -50,18 +44,16 @@ damn, I can stack tangents
 The rendered markdown then gets templated into a [quicktemplate](https://github.com/valyala/quicktemplate) to generate the HTML sent to the reader.
 
 <tangent>
-quicktemplate is actually not a runtime templating engine, but a code generator. The code it generates is pretty equivalent to just `writer.Write("string")`, so it's really fast.
+quicktemplate is actually not a runtime templating engine, but a code generator. The code it generates is pretty much equivalent to just `writer.Write("string")`, so it's really fast.
 </tangent>
 
-I wanted parcel to take the templates and modify them to include CSS, fonts and if I ever decide to integrate frontend JS, that as well.
+I wanted parcel to take the templates and modify them to include CSS, fonts and, should I ever decide to integrate frontend JS, that as well.
 
 ## What is a bundler and why do I want to use it
 
 A bundler takes all your JS/Fonts/CSS files and combines them to a minimum of files.
-
-This reduces the amount of requests your browser has to make ad it makes caching easier.
-
-It also allows the bundler to merge your code and it's dependencies, so for example if you do 
+This reduces the amount of requests your browser has to make, and it makes caching easier.
+It also allows the bundler to merge your code and its dependencies, so for example if you do 
 
 ```css
 @import 'npm:@fontsource-variable/jetbrains-mono/wght-italic.css';
@@ -69,10 +61,10 @@ It also allows the bundler to merge your code and it's dependencies, so for exam
 
 in an included CSS file, your bundler can automagically also output the font into your application.
 
-Parcel by default outputs files with hashes in their file name, so you can just tell your Web server to set its cache policy to forever and bam, easy caching.
+Parcel by default outputs files with hashes in their file name, so you can just tell your web server to set its cache policy to forever and bam, easy caching.
 
 <tangent>
-This is so cool
+This is so cool.
 </tangent>
 
 ## Getting parcel to play nice with templates
@@ -82,7 +74,7 @@ This is so cool
 To understand how parcel works, reading its [Plugin System Overview](https://parceljs.org/plugin-system/overview/) is probably the best resource.
 But I'll try to give a short overview to describe where I needed to hook in to make it work with `qtpl`.
 
-Parcel has Resolvers and Transformers to figure out, assets make up your project
+Parcel has Resolvers and Transformers to figure out which assets make up your project
 
 **Resolvers:**
 
@@ -91,22 +83,22 @@ Resolvers turn dependency requests into absolute paths. So it'll and convert our
 **Transformers:**
 
 Transformers take a file and convert it somehow. So if you had for example a SCSS file, a transformer would convert it to CSS. Another Transformer might minimize an HTML file.
-They also add dependencies to the asset graph for the resolvers to resolve. So our JetBrains-Mono gets added by a CSS transformer to the asset graph.
+They also add dependencies to the asset graph for the resolvers to resolve. So our JetBrains-Mono gets added  to the asset graph by a CSS transformer.
 
 
 The Assets then get bundled (by Bundler plugins) to combine files where possible, named (by Namer plugins) to figure out file paths, and then they're written to the output directory.
 
 <tangent>
-There are other steps like Compressors or Validators but we'll ignore them here
+There are other steps like Compressors or Validators but we'll ignore them here.
 </tangent>
 
 ### The Parcel Plugins I needed to write
 
-Parcel plugins are their own JS Projects with their own package.json,...
+Parcel plugins are their own JS Projects with their own package.json, etc.
 Using yarn workspaces this wasn't even as painful as I had thought.
 
 <tangent>
-[now they even can be just JS Module files](https://parceljs.org/features/plugins/#relative-file-paths), that would have been so much easier
+[now they can even be just JS Module files](https://parceljs.org/features/plugins/#relative-file-paths), that would have been so much easier.
 </tangent>
 
 The main JS file of the Plugin just has to default export the Plugin class itself.
@@ -119,7 +111,7 @@ Parcel tries to import anything, even links to template strings.
 So I needed to build a resolver that just ignores imports from `.qtpl` files if the import isn't CSS or JS
 
 <tangent>
-if you want to adopt it to other templating engines like `html/template`, just change the file endings
+if you want to adopt it to other templating engines like `html/template`, just change the file endings.
 </tangent>
 
 That's the resolver:
@@ -133,6 +125,7 @@ exports.default = new Resolver({
     if (!x.dependency | !x.dependency.sourcePath) return null; // dependency can be undefined
     // make sure only css and js files are included from qtpl files
     if (x.dependency.sourcePath.endsWith(".qtpl") &&
+      // this will be confusing pain should I ever use scss or typescript
       !(x.specifier.endsWith(".css") || x.specifier.endsWith(".js"))) {
       return { isExcluded: true };
     }
@@ -165,7 +158,7 @@ exports.default = new Namer({
       let hr = bundle.needsStableName ? "." : `${bundle.hashReference}.`
       return `../statics/dist/${bn[0]}.${hr}${bn.slice(1).join("")}`;
     }
-    return null;
+    return null; // when the namer returns null, the next namer will be tried
 
   }
 });
@@ -174,9 +167,9 @@ exports.default = new Namer({
 
 ### Combining plugins to have a working parcel configuration
 
-That's all the needed plugins. 
+That are all the needed plugins. 
 
-Now we just have to write a parcel configuration that combines all the plugins with the defaults.
+Now we just have to write a parcel configuration that combines our custom plugins with the defaults.
 A parcel configuration is just a JSON5 file describing what plugins to use.
 
 If you don't have any `.parcelrc` it'll just use `@parcel/config-default` as its configuration.
@@ -204,19 +197,50 @@ We'll just extend `@parcel/config-default` because it does all the CSS transform
 
 <tangent>
 `"..."` just includes the defaults
+
+`@parcel/transformer-raw` just takes the input and returns it as an output file.
+
+`@parcel/transformer-inline-string` takes an input and returns it as an inline string. The HTML transformer doesn't like to write files into itself.
 </tangent>
 
 I needed to explicitly handle `jsonld` and tell parcel to do nothing with it, as Parcel will - by default - transform JSON-LD meta tags to resolve listed dependencies, etc.
-I inject my JSON-LD at runtime, so it tried to parse the template string as JSON, without much success.
 
 <tangent>
-`@parcel/transformer-raw` just takes the input and returns it as an output file.
+You're probably wondering what [JSON-LD](https://json-ld.org/) is. It's a JSON (who would have guessed) based format for linking data.
 
-`@parcel/transformer-inline-string` takes an input and returns it as an inline string. The HTML transformer doesn't like to write files into itself
+It allows specifying and linking together data, so you could for example define a blog posting and their authors in JSON-LD.
+
+And that's exactly what I use it for, I define a [BlogPosting](https://schema.org/BlogPosting) for every blog post of mine, because it's an easy thing to do for some search engine optimization. (you can see it at the end of the HTML `head` of this post)
 </tangent>
 
+I inject my JSON-LD at runtime, so it tried to parse the template string as JSON, without much success.
 
-Including Tailwind CSS was as easy as just following [Tailwinds tutorial for PostCSS](https://tailwindcss.com/docs/installation/using-postcss)
+<div style="padding-top: 1rem;"></div>
+
+Including Tailwind CSS was as easy as just following [Tailwind's tutorial for PostCSS](https://tailwindcss.com/docs/installation/using-postcss), without installing `autoprefixer`, as Parcel already does that for us.
+
+Parcel needs to also know from which files to start building the asset graph.
+You can put an array of paths in your `package.json` under the key `source`.
+
+Mine looks like this:
+
+```json
+// package.json (excerpt)
+{
+  "source": [
+    "./tmplsrc/basepage.qtpl",
+    "./tmplsrc/error.qtpl",
+    "./tmplsrc/index.qtpl",
+    "./tmplsrc/post.qtpl",
+    "./tmplsrc/posts.qtpl",
+    "./tmplsrc/simpleMdPage.qtpl"
+  ]
+}
+```
+
+Specifying a blob pattern should also work, but it broke the nix build somehow.
+Speaking of it:
+
 
 ## Building the whole thing with nix
 
@@ -238,12 +262,12 @@ The parcel plugins are part of yarn workspaces, which we need to include manuall
 
 ```nix
 # flake.nix (excerpt)
-xnoblog_tmpl = pkgs.mkYarnPackage rec {
+xynoblog_tmpl = pkgs.mkYarnPackage rec {
   pname = "xynoblog_tmpl";
   version = "0.0.1";
+  src = ./.;
   workspaceDependencies =
-    let
-      deps = map
+      (map
         (x:
           pkgs.mkYarnPackage { # generate a yarn package for everything
             src = "${./packages}/${x}";
@@ -252,9 +276,7 @@ xnoblog_tmpl = pkgs.mkYarnPackage rec {
             inherit version offlineCache; # inherit the parents version and cache
           }
         )
-        (builtins.attrNames (builtins.readDir ./packages)); # import all packages in the packages directory
-    in
-    deps;
+        (builtins.attrNames (builtins.readDir ./packages))); # import all packages in the packages directory
   offlineCache = pkgs.fetchYarnDeps { # this fetches yarn dependencies into nix
     yarnLock = src + "/yarn.lock";
     # sha256 = pkgs.lib.fakeSha256;
@@ -277,7 +299,7 @@ Now all the build templates/assets are built into a nix derivation.
 <tangent>
 In `pkgs.fetchYarnDeps`, you get the right sha256 just like you do with `pkgs.buildGoModule`.
 
-Setting it to `pkgs.lib.fakeSha256` and seeing onto which sha256 it mismatches
+Setting it to `pkgs.lib.fakeSha256` and seeing onto which sha256 it mismatches.
 </tangent>
 
 ### Converting templates and building the application
@@ -302,6 +324,8 @@ xynoblog = pkgs.buildGoModule rec {
   };
 ```
 
+<div style="padding-bottom: 1rem;"></div>
+
 <hr/>
 
 That's how I use Parcel with a template engine.
@@ -309,8 +333,6 @@ If you want to read my blogs source code, it's open source and on [GitHub](https
 
 But please don't base your blog engine on it, and [just learn a new language, and write your own](https://xeiaso.net/blog/new-language-blog-backend-2022-03-02)
 
-<br>
-
 Thank you for reading, and a big thanks to
-[Arson](https://chaos.social/@nzbr)
+[Arson](https://nzbr.link)
 for their input and help in writing this post.
