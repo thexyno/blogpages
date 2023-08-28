@@ -64,7 +64,7 @@ This reduces the amount of requests your browser has to make ad it makes caching
 It also allows the bundler to merge your code and it's dependencies, so for example if you do 
 
 ```css
-@import 'npm:jetbrains-mono';
+@import 'npm:@fontsource-variable/jetbrains-mono/wght-italic.css';
 ```
 
 in an included CSS file, your bundler can automagically also output the font into your application.
@@ -82,7 +82,7 @@ This is so cool
 To understand how parcel works, reading its [Plugin System Overview](https://parceljs.org/plugin-system/overview/) is probably the best resource.
 But I'll try to give a short overview to describe where I needed to hook in to make it work with `qtpl`.
 
-Parcel has Resolvers and Transformers to figure out, out of which assets your Project consists
+Parcel has Resolvers and Transformers to figure out, assets make up your project
 
 **Resolvers:**
 
@@ -91,10 +91,10 @@ Resolvers turn dependency requests into absolute paths. So it'll and convert our
 **Transformers:**
 
 Transformers take a file and convert it somehow. So if you had for example a SCSS file, a transformer would convert it to CSS. Another Transformer might minimize an HTML file.
-They also add dependencies to the asset graph for the resolvers to resolve. So our `@import 'npm:jetbrains-mono';` gets added to the asset graph.
+They also add dependencies to the asset graph for the resolvers to resolve. So our JetBrains-Mono gets added by a CSS transformer to the asset graph.
 
 
-The Assets then get bundled (by a Bundler plugin) to combine files where possible, named (by a Namer plugin) to figure out file paths, and then they're written to the output directory.
+The Assets then get bundled (by Bundler plugins) to combine files where possible, named (by Namer plugins) to figure out file paths, and then they're written to the output directory.
 
 <tangent>
 There are other steps like Compressors or Validators but we'll ignore them here
@@ -105,14 +105,18 @@ There are other steps like Compressors or Validators but we'll ignore them here
 Parcel plugins are their own JS Projects with their own package.json,...
 Using yarn workspaces this wasn't even as painful as I had thought.
 
+<tangent>
+[now they even can be just JS Module files](https://parceljs.org/features/plugins/#relative-file-paths), that would have been so much easier
+</tangent>
+
 The main JS file of the Plugin just has to default export the Plugin class itself.
 
 #### A resolver to ignore most kind of imports in `.qtpl` files
 
-// TODO: explain this section better
-
+In the blog engine, links to posts/etc. get templated into the page at runtime.
 Parcel tries to import anything, even links to template strings.
-I needed to build a resolver that just ignores imports from `.qtpl` files if the import isn't CSS or JS
+
+So I needed to build a resolver that just ignores imports from `.qtpl` files if the import isn't CSS or JS
 
 <tangent>
 if you want to adopt it to other templating engines like `html/template`, just change the file endings
@@ -122,7 +126,7 @@ That's the resolver:
 
 ```js
 // packages/parcel-resolver-qtpl/src/index.js
-const { Resolver } = require('@parcel/plugin');
+const { Resolver } = require('@parcel/plugin'); // cjs is ugly but it just worked and I'm lazy
 
 exports.default = new Resolver({
   async resolve(x) {
@@ -139,35 +143,14 @@ exports.default = new Resolver({
 
 simple, isn't it
 
-
-#### A transformer that just does nothing
-
-Parcel will - by default - transform JSON-LD meta tags to resolve listed dependencies, etc.
-
-I inject my JSON-LD at runtime, so it tried to parse the template string as JSON, without much success.
-It isn't even possible to say that an asset doesn't need a transformer (I think, if you know how to do that send me a message) so I needed a transformer that does nothing.
-
-```js
-// packages/parcel-transformer-donothing/src/index.js
-const { Transformer } = require('@parcel/plugin');
-
-exports.default = new Transformer({
-  async transform({ asset }) {
-    return [asset];
-  }
-});
-```
-
-done
-
 #### A Namer to place assets into a different directory
 
-I bundle my whole blog into a single binary using `go:embed`, so the paths of the template and asset files needed to be different.
+The default Namer just puts all your assets into the same directory. But as the output consists of both files to be read by the templating engine and assets, the files needed to be split into different directories.
 
-- Templates go to `/templates`
+- Templates go to `/templates` (I set this as the primary output path)
 - anything else goes to `/statics/dist`
 
-Writing Namers is also surprisingly simple. You just need to return the file name you want the file to have in the end.
+Writing Namers is also surprisingly simple. You just need to return the file path you want the file to have in the end (relative to the primary output path).
 
 ```js
 // packages/parcel-namer-split/src/index.js
@@ -206,13 +189,13 @@ We'll just extend `@parcel/config-default` because it does all the CSS transform
   "resolvers": ["parcel-resolver-qtpl", "..."],
   "transformers": {
     "*.qtpl": [
-      "@parcel/transformer-posthtml",
+      "@parcel/transformer-posthtml", // the default html transformers
       "@parcel/transformer-html"
     ],
     "*.jsonld": ["@parcel/transformer-raw", "@parcel/transformer-inline-string"]
   },
   "packagers": {
-    "*.qtpl": "@parcel/packager-html"
+    "*.qtpl": "@parcel/packager-html" // the default html packager
   },
   "namers": ["parcel-namer-split", "..." ],
 }
@@ -274,6 +257,7 @@ xnoblog_tmpl = pkgs.mkYarnPackage rec {
     deps;
   offlineCache = pkgs.fetchYarnDeps { # this fetches yarn dependencies into nix
     yarnLock = src + "/yarn.lock";
+    # sha256 = pkgs.lib.fakeSha256;
     sha256 = "sha256-ImagineARealSHA256Here/ItGetsGeneratedByNix="; # reproducible ✨
   };
   src = ./.;
@@ -290,6 +274,11 @@ xnoblog_tmpl = pkgs.mkYarnPackage rec {
 
 Now all the build templates/assets are built into a nix derivation.
 
+<tangent>
+In `pkgs.fetchYarnDeps`, you get the right sha256 just like you do with `pkgs.buildGoModule`.
+
+Setting it to `pkgs.lib.fakeSha256` and seeing onto which sha256 it mismatches
+</tangent>
 
 ### Converting templates and building the application
 
@@ -313,11 +302,15 @@ xynoblog = pkgs.buildGoModule rec {
   };
 ```
 
-## Conclusion
+<hr/>
 
 That's how I use Parcel with a template engine.
 If you want to read my blogs source code, it's open source and on [GitHub](https://github.com/thexyno/blog).
 
 But please don't base your blog engine on it, and [just learn a new language, and write your own](https://xeiaso.net/blog/new-language-blog-backend-2022-03-02)
 
-Thank you for reading, and big thanks to [Arson](https://chaos.social/@nzbr) for their input and help in writing this article.
+<br>
+
+Thank you for reading, and a big thanks to
+[Arson](https://chaos.social/@nzbr)
+for their input and help in writing this post.
